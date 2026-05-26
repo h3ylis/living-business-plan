@@ -1,0 +1,64 @@
+<div class="paper-container" style="margin-left: 0;">
+  <div style="width: 100%; max-width: 900px;">
+
+    <h1 style="margin: 32px 0 8px;">Dashboard</h1>
+    <p style="color: #666; margin-bottom: 32px;">Welcome back, {{user.name}}. Here's the state of the plan.</p>
+
+    <div class="dashboard-grid">
+      <div class="dash-card">
+        <h3>Sections</h3>
+        <div class="big-number">{{stats.total}}</div>
+        <p style="font-size:0.85rem; color:#666; margin-top:4px;">
+          <span style="color:var(--accept)">{{stats.approved}} approved</span> &middot;
+          <span style="color:#e65100">{{stats.under_review}} reviewing</span> &middot;
+          {{stats.draft}} draft &middot;
+          <span style="color:var(--reject)">{{stats.rejected}} rejected</span>
+        </p>
+      </div>
+      <div class="dash-card">
+        <h3>Needs Your Input</h3>
+        <div class="big-number">{{needsReviewCount}}</div>
+        <p style="font-size:0.85rem; color:#666; margin-top:4px;">sections waiting for your vote</p>
+      </div>
+    </div>
+
+    {{#if needsReview.length}}
+    <div class="dash-card" style="margin-bottom:24px;">
+      <h3>Sections Awaiting Your Review</h3>
+      <table class="activity-table">
+        <thead><tr><th>Section</th><th>Status</th></tr></thead>
+        <tbody>
+          {{#each needsReview}}
+          <tr>
+            <td><a href="/plan#section-{{this.id}}">{{this.title}}</a></td>
+            <td><span class="badge badge-{{this.status}}">{{this.status}}</span></td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    {{/if}}
+
+    <div class="dash-card">
+      <h3>Recent Activity</h3>
+      {{#if recentActivity.length}}
+      <table class="activity-table">
+        <thead><tr><th>Who</th><th>Action</th><th>Section</th><th>When</th></tr></thead>
+        <tbody>
+          {{#each recentActivity}}
+          <tr>
+            <td>{{this.author_name}}</td>
+            <td><span class="badge badge-{{this.entry_type}}">{{this.entry_type}}</span></td>
+            <td><a href="/plan#section-{{this.section_id}}">{{this.section_title}}</a></td>
+            <td>{{this.timeAgo}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      {{else}}
+      <p style="color:#999; font-style:italic;">No activity yet. <a href="/plan">Open the plan</a> to get started.</p>
+      {{/if}}
+    </div>
+
+  </div>
+</div>

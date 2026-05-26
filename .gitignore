@@ -1,0 +1,25 @@
+node_modules/
+__pycache__/
+*.pyc
+
+# Environment & secrets
+.env
+deploy/exec.env
+
+# Logs
+*.log
+*.err
+
+# Private seed data
+db/seed-georeframe.sql
+
+# Mockups & design files
+mockup*.html
+
+# Deployment (infrastructure-specific)
+deploy/
+
+# Project-specific docs
+DEPLOY_TO_EVO.md
+SCOPE.md
+CLAUDE.md

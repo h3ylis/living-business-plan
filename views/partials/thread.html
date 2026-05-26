@@ -1,0 +1,33 @@
+{{#each entries}}
+{{#if this.isActivity}}
+<div class="thread-activity-divider">
+  <span>{{this.author_name}} &middot; {{{this.body_html}}} &middot; {{this.timeAgo}}</span>
+</div>
+{{else}}
+<div class="thread-entry {{this.alignClass}}">
+  <div class="thread-avatar" style="background: hsl({{this.avatarHue}}, 50%, 40%);">{{this.avatarLetter}}</div>
+  <div class="thread-content">
+    <div class="thread-bubble {{this.bubbleClass}}">
+      {{#if (eq this.entry_type 'accept')}}<strong>&#10003; Accepted</strong><br>{{/if}}
+      {{#if (eq this.entry_type 'reject')}}<strong>&#10007; Rejected</strong><br>{{/if}}
+      {{{this.body_html}}}
+    </div>
+    <div class="thread-meta"><span class="thread-name">{{this.author_name}}</span> &middot; {{this.timeAgo}}</div>
+  </div>
+</div>
+{{/if}}
+{{/each}}
+{{#unless entries.length}}
+<p class="empty-thread">No discussion yet. Be the first to comment.</p>
+{{/unless}}
+
+{{#if history.length}}
+<details class="version-history">
+  <summary style="cursor:pointer; font-size:0.85rem; color:#888;">Version History ({{history.length}})</summary>
+  {{#each history}}
+  <div class="history-entry">
+    <strong>v{{this.version}}</strong> by {{this.changed_by}} &mdash; {{this.timeAgo}}
+  </div>
+  {{/each}}
+</details>
+{{/if}}

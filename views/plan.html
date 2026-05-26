@@ -1,0 +1,93 @@
+<!-- Sidebar toggle -->
+<button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">&#9664;</button>
+
+<!-- Left sidebar TOC -->
+<div class="sidebar" id="sidebar">
+  <h3>Contents</h3>
+  {{#each sections}}
+  <button class="toc-item" onclick="scrollToSection('{{section.id}}')">
+    <span class="toc-dot toc-dot-{{section.status}}"></span>
+    {{section.title}}
+  </button>
+  {{/each}}
+</div>
+
+<!-- Paper -->
+<div class="paper-container sidebar-open" id="paper-container">
+  <div class="paper" id="paper">
+
+    <h1 class="paper-title">Business Plan</h1>
+    <p class="paper-subtitle">Draft &nbsp;|&nbsp; Last updated: {{lastUpdated}}</p>
+
+    {{#each sections}}
+    <div class="section-block" id="section-{{section.id}}" data-section-id="{{section.id}}"
+         hx-get="/plan/section/{{section.id}}" hx-trigger="sectionUpdated from:body" hx-swap="outerHTML">
+      <h2 class="section-heading">
+        <span class="section-num">{{section.position}}.</span>
+        {{section.title}}
+        <span class="badge badge-{{section.status}}">{{section.status}}</span>
+        <div class="vote-dots">
+          {{#each section.votes}}
+          <span class="vote-dot vote-dot-{{this.vote}}" title="{{this.voter_name}}: {{this.reason}}">
+            {{#if (eq this.vote 'accept')}}&#10003;{{else}}&#10007;{{/if}}
+          </span>
+          {{/each}}
+        </div>
+        <button class="comment-icon" onclick="openThread('{{section.id}}', '{{section.title}}')">&#128172;</button>
+      </h2>
+      <div class="section-body" ondblclick="startEdit('{{section.id}}')">{{{section.body_html}}}</div>
+      <div class="inline-editor" id="editor-{{section.id}}">
+        <div class="inline-editor-toolbar">
+          <button onclick="insertMd('{{section.id}}','**','**')"><b>B</b></button>
+          <button onclick="insertMd('{{section.id}}','*','*')"><i>I</i></button>
+          <button onclick="insertMd('{{section.id}}','## ','')">H2</button>
+          <button onclick="insertMd('{{section.id}}','- ','')">List</button>
+          <button class="btn-save" onclick="saveEdit('{{section.id}}')">Save</button>
+          <button class="btn-cancel-edit" onclick="cancelEdit('{{section.id}}')">Cancel</button>
+        </div>
+        <textarea id="editor-textarea-{{section.id}}">{{section.body_md}}</textarea>
+      </div>
+    </div>
+    {{/each}}
+
+    {{#unless sections.length}}
+    <p style="text-align:center; color:#999; padding:48px 0; font-style:italic;">
+      No sections yet. Run <code>seed.sql</code> to load the business plan template.
+    </p>
+    {{/unless}}
+
+  </div>
+</div>
+
+<!-- Floating comment button -->
+<button class="float-comment-btn" id="float-btn" onclick="commentOnSelection()">&#128172; Comment</button>
+
+<!-- Modal overlay -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+
+<!-- Thread modal -->
+<div class="modal-panel" id="modal">
+  <div class="modal-head">
+    <h3 id="modal-title"></h3>
+    <span class="badge" id="modal-status-badge"></span>
+  </div>
+  <div class="modal-quote" id="modal-quote" style="display:none"></div>
+  <div class="modal-body" id="modal-body"></div>
+  <div class="modal-compose">
+    <div class="compose-input-row">
+      <textarea id="modal-comment-text" placeholder="Add a comment..."></textarea>
+      <button class="btn-send" onclick="submitComment()" title="Send comment">&#10148;</button>
+    </div>
+    <div id="vote-form" style="display:none; margin-top:8px;">
+      <label style="font-size:0.85rem; font-weight:600;">Reason (mandatory):</label>
+      <textarea id="vote-reason" placeholder="Why are you accepting/rejecting?" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; font-size:0.9rem; min-height:50px; font-family:inherit; margin-top:4px;"></textarea>
+    </div>
+    <div class="compose-btns">
+      <button class="btn-accept" onclick="showVoteForm('accept')" title="Accept section">&#10003;</button>
+      <button class="btn-reject" onclick="showVoteForm('reject')" title="Reject section">&#10007;</button>
+      <button class="btn-edit-action" onclick="editFromModal()" title="Edit section">&#9998;</button>
+      <span class="compose-spacer"></span>
+      <button class="btn-cancel" onclick="closeModal()" title="Close">&#10005;</button>
+    </div>
+  </div>
+</div>

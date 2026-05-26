@@ -1,0 +1,28 @@
+<div class="section-block" id="section-{{section.id}}" data-section-id="{{section.id}}"
+     hx-get="/plan/section/{{section.id}}" hx-trigger="sectionUpdated from:body" hx-swap="outerHTML">
+  <h2 class="section-heading">
+    <span class="section-num">{{section.position}}.</span>
+    {{section.title}}
+    <span class="badge badge-{{section.status}}">{{section.status}}</span>
+    <div class="vote-dots">
+      {{#each section.votes}}
+      <span class="vote-dot vote-dot-{{this.vote}}" title="{{this.voter_name}}: {{this.reason}}">
+        {{#if (eq this.vote 'accept')}}&#10003;{{else}}&#10007;{{/if}}
+      </span>
+      {{/each}}
+    </div>
+    <button class="comment-icon" onclick="openThread('{{section.id}}', '{{section.title}}')">&#128172;</button>
+  </h2>
+  <div class="section-body" ondblclick="startEdit('{{section.id}}')">{{{section.body_html}}}</div>
+  <div class="inline-editor" id="editor-{{section.id}}">
+    <div class="inline-editor-toolbar">
+      <button onclick="insertMd('{{section.id}}','**','**')"><b>B</b></button>
+      <button onclick="insertMd('{{section.id}}','*','*')"><i>I</i></button>
+      <button onclick="insertMd('{{section.id}}','## ','')">H2</button>
+      <button onclick="insertMd('{{section.id}}','- ','')">List</button>
+      <button class="btn-save" onclick="saveEdit('{{section.id}}')">Save</button>
+      <button class="btn-cancel-edit" onclick="cancelEdit('{{section.id}}')">Cancel</button>
+    </div>
+    <textarea id="editor-textarea-{{section.id}}">{{section.body_md}}</textarea>
+  </div>
+</div>
