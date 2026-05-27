@@ -102,6 +102,8 @@ Any vote cast      → under_review
 2 accepts + reject → approved_with_objection
 ```
 
+The threshold is configurable via `REQUIRED_VOTES` in `.env` (default: 2). Set to `1` for solo use or testing.
+
 Every vote requires a written reason. No silent approvals, no rubber stamps. The reasoning is preserved in the section's thread alongside comments and edits.
 
 ## Authentication
