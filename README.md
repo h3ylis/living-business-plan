@@ -2,13 +2,17 @@
 
 **Reads like a document. Edits like a conversation. Decides like a board vote.**
 
-A collaborative business plan platform for small partnerships. Write your plan in Markdown, discuss each section in threaded conversations, and make decisions through structured voting with mandatory reasoning.
+A multi-stakeholder living document platform for small partnerships and teams. Write your plan in Markdown, discuss each section in threaded conversations, and make decisions through structured voting with mandatory reasoning.
 
 No signup walls. No SaaS fees. Run it on your own machine.
 
+![Dashboard](docs/dashboard.png)
+
+![Plan View](docs/plan-view.png)
+
 ## What it does
 
-- **13-section business plan template** — Executive Summary through Timeline & Milestones
+- **13-section business plan template** — Executive Summary through Timeline & Milestones (fully customisable)
 - **Threaded discussion per section** — comment, debate, refine
 - **Structured voting** — accept or reject with mandatory reasoning (no drive-by approvals)
 - **2-of-3 consensus** — sections are approved when 2 partners agree, flagged when anyone objects
@@ -26,6 +30,25 @@ No signup walls. No SaaS fees. Run it on your own machine.
 - **Python FastMCP** — optional MCP server for AI access (14 tools)
 
 No webpack. No React. No build step. Edit a file, refresh the browser.
+
+## Use cases
+
+The default template is a business plan, but the platform works for any multi-stakeholder document that needs structured consensus:
+
+| Use case | Sections become... |
+|----------|--------------------|
+| **Business plan** | Executive Summary, Market Analysis, Financial Projections... |
+| **Partnership agreement** | Clauses — draft, debate, and ratify each one |
+| **Product RFC / design doc** | Proposal sections — propose, discuss, approve with reasoning |
+| **Policy document** | Team policies, operating agreements, bylaws |
+| **Grant / research proposal** | Co-authors refine sections, vote on direction |
+| **Construction spec** | Scope items — sign off with mandatory reasoning |
+| **Board governance** | Motions and resolutions with voting record |
+| **Event planning** | Venue, catering, schedule — each locked after consensus |
+
+The thread + mandatory-reasoning-on-votes pattern is the key differentiator. Every approval requires a written explanation. No rubber stamps, no silent sign-offs. And because every vote and comment is preserved, you always know *why* a decision was made — not just *what* was decided.
+
+Edit `db/seed.sql` to change the starting sections for your use case.
 
 ## Quick start
 
