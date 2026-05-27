@@ -3,19 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Exec — {{pageTitle}}</title>
+  <title>{{appName}} — {{pageTitle}}</title>
   <link rel="stylesheet" href="/static/pico.min.css">
   <link rel="stylesheet" href="/static/style.css">
+  <style>:root { --accent: {{accentColor}}; }</style>
   <script src="/static/htmx.min.js"></script>
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-brand">Exec</div>
+    <div class="topbar-brand">{{appName}}</div>
     <div class="topbar-nav">
       <a href="/" class="{{homeActive}}">Home</a>
       <a href="/plan" class="{{planActive}}">Plan</a>
+      {{#if isAdmin}}<a href="/admin" class="{{adminActive}}">Admin</a>{{/if}}
     </div>
-    <div class="topbar-user">{{userName}}</div>
+    <div class="topbar-user">
+      {{userName}}
+      <a href="/auth/logout" style="color:#888; font-size:0.75rem; margin-left:8px; text-decoration:none;">logout</a>
+    </div>
   </div>
   {{{content}}}
   <script src="/static/exec.js"></script>

@@ -16,7 +16,7 @@
 <div class="paper-container sidebar-open" id="paper-container">
   <div class="paper" id="paper">
 
-    <h1 class="paper-title">Business Plan</h1>
+    <h1 class="paper-title">{{documentTitle}}</h1>
     <p class="paper-subtitle">Draft &nbsp;|&nbsp; Last updated: {{lastUpdated}}</p>
 
     {{#each sections}}
@@ -35,7 +35,11 @@
         </div>
         <button class="comment-icon" onclick="openThread('{{section.id}}', '{{section.title}}')">&#128172;</button>
       </h2>
+      {{#if section.locked}}
+      <div class="section-body section-locked">{{{section.body_html}}}</div>
+      {{else}}
       <div class="section-body" ondblclick="startEdit('{{section.id}}')">{{{section.body_html}}}</div>
+      {{/if}}
       <div class="inline-editor" id="editor-{{section.id}}">
         <div class="inline-editor-toolbar">
           <button onclick="insertMd('{{section.id}}','**','**')"><b>B</b></button>

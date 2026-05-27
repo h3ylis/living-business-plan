@@ -55,6 +55,13 @@ router.get('/:sectionId', async (req, res) => {
 });
 
 router.post('/:sectionId/comment', async (req, res) => {
+  // Check viewer comment permission
+  if (req.user.role === 'viewer') {
+    const settings = require('../lib/settings');
+    const allowed = await settings.get('allow_viewer_comments');
+    if (allowed === 'false') return res.status(403).send('Viewers cannot comment on this plan');
+  }
+
   const { body_md } = req.body;
   if (!body_md || !body_md.trim()) return res.status(400).send('Comment required');
 

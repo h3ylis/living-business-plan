@@ -15,8 +15,12 @@ No signup walls. No SaaS fees. Run it on your own machine.
 - **13-section business plan template** — Executive Summary through Timeline & Milestones (fully customisable)
 - **Threaded discussion per section** — comment, debate, refine
 - **Structured voting** — accept or reject with mandatory reasoning (no drive-by approvals)
-- **2-of-3 consensus** — sections are approved when 2 partners agree, flagged when anyone objects
+- **Dynamic consensus** — auto-scales with partner count (solo → 1, pair → unanimous, 3+ → majority)
+- **Partner management** — admin panel to add partners, assign roles (admin/partner/viewer), control access
+- **Magic-link auth** — passwordless email login, or plug into your existing SSO
+- **Customisable branding** — app name, document title, accent colour — all from the admin panel
 - **Version history** — every edit is recorded, nothing is lost
+- **Section locking** — optionally lock approved sections, reset votes on edit
 - **Section cross-references** — link related sections (manual or AI-suggested)
 - **Email notifications** — partners get notified when sections change or votes are cast
 - **MCP server** — read and edit the plan from any AI chat client (Claude, etc.)
@@ -39,11 +43,14 @@ The default template is a business plan, but the platform works for any multi-st
 |----------|--------------------|
 | **Business plan** | Executive Summary, Market Analysis, Financial Projections... |
 | **Partnership agreement** | Clauses — draft, debate, and ratify each one |
+| **Co-op / HOA bylaws** | Articles of incorporation, membership rules, voting procedures |
 | **Product RFC / design doc** | Proposal sections — propose, discuss, approve with reasoning |
-| **Policy document** | Team policies, operating agreements, bylaws |
+| **Policy document** | Team policies, operating agreements, codes of conduct |
 | **Grant / research proposal** | Co-authors refine sections, vote on direction |
 | **Construction spec** | Scope items — sign off with mandatory reasoning |
 | **Board governance** | Motions and resolutions with voting record |
+| **Franchise operations manual** | SOPs — each procedure reviewed and signed off |
+| **Investment thesis** | Due diligence sections — partners approve with rationale |
 | **Event planning** | Venue, catering, schedule — each locked after consensus |
 
 The thread + mandatory-reasoning-on-votes pattern is the key differentiator. Every approval requires a written explanation. No rubber stamps, no silent sign-offs. And because every vote and comment is preserved, you always know *why* a decision was made — not just *what* was decided.
@@ -108,56 +115,87 @@ Every vote requires a written reason. No silent approvals, no rubber stamps. The
 
 ## Authentication
 
-Two modes:
+Three modes (set `AUTH_MODE` in `.env`):
 
-- **Development** — auto-login using `DEV_USER_EMAIL` / `DEV_USER_NAME` from `.env`
-- **Production** — reads `Remote-Email` and `Remote-Name` headers from a reverse proxy (designed for [Authelia](https://www.authelia.com/), works with any SSO that injects headers)
+- **`dev`** — auto-login using `DEV_USER_EMAIL` / `DEV_USER_NAME` from `.env`. Good for solo use and testing.
+- **`magic-link`** — email-based login. Partners enter their email, receive a one-time sign-in link. No passwords, no external dependencies — just SMTP.
+- **`proxy`** — reads `Remote-Email` and `Remote-Name` headers from a reverse proxy (designed for [Authelia](https://www.authelia.com/), works with any SSO that injects headers).
 
-There's no built-in user database — identity comes from your auth layer.
+All modes validate against the `partners` table. The first user is bootstrapped as admin from `DEV_USER_EMAIL`. Additional partners are added through the admin panel.
+
+## Partner management
+
+Partners are stored in the database (not in `.env`). Three roles:
+
+- **Admin** — full access + admin panel (manage partners, branding, settings)
+- **Partner** — read, comment, edit, vote
+- **Viewer** — read and comment only (configurable)
+
+The admin panel (`/admin`) lets you add partners, change roles, deactivate accounts, and configure branding and plan settings.
+
+## Branding & settings
+
+Configurable from the admin panel:
+
+- **App name** — shown in the topbar and page titles
+- **Document title** — "Business Plan", "Partnership Agreement", or whatever you're building
+- **Accent colour** — one colour picker updates the entire UI
+- **Lock approved sections** — prevent edits after consensus
+- **Reset votes on edit** — clear existing votes when content changes
+- **Viewer comments** — allow or restrict viewer participation
 
 ## Project structure
 
 ```
 server.js           — Express app + template engine
 lib/
-  auth.js           — Authelia header parsing + dev mode bypass
+  auth.js           — Three-mode auth (dev, magic-link, proxy)
   db.js             — PostgreSQL connection pool
-  status.js         — Vote → status engine (2-of-3 consensus)
+  settings.js       — App settings loader (cached, from DB)
+  status.js         — Vote → status engine (dynamic consensus)
   notify.js         — Email notifications via Nodemailer
 routes/
+  auth-routes.js    — Login, magic-link verify, logout
+  admin.js          — Partner management + settings
   dashboard.js      — Landing page with stats + activity feed
   plan.js           — Document view + section CRUD
   thread.js         — Threaded comments per section
   vote.js           — Accept/reject with mandatory reason
 views/
-  layout.html       — Page shell
+  layout.html       — Page shell (dynamic branding)
+  login.html        — Magic-link login page
+  admin.html        — Admin panel
   dashboard.html    — Dashboard template
   plan.html         — Full document view
-  partials/         — Section card, thread modal
-  emails/           — Notification email templates
+  partials/         — Section card, thread modal, partner list
 static/
   style.css         — Custom styles
   exec.js           — Client-side JS (modals, inline edit, HTMX helpers)
   htmx.min.js       — HTMX (local copy)
   pico.min.css      — Pico CSS (local copy)
 db/
-  schema.sql        — PostgreSQL schema (7 tables)
+  schema.sql        — PostgreSQL schema (10 tables)
+  migrate-001-partners.sql — Partners/settings migration (for existing installs)
   seed.sql          — 13 starter sections
 exec_mcp.py         — MCP server (14 tools, direct PG access)
 ```
 
 ## Database
 
-7 tables in the `bizplan` schema:
+10 tables in the `bizplan` schema:
 
 | Table | Purpose |
 |-------|---------|
-| `sections` | 13 business plan sections (hierarchical, Markdown body) |
+| `sections` | Business plan sections (hierarchical, Markdown body) |
 | `thread_entries` | Threaded conversation per section |
 | `votes` | Accept/reject with mandatory reasoning |
 | `section_links` | Cross-references between sections |
 | `notifications` | Email notification log |
 | `section_history` | Immutable version history |
+| `partners` | Registered users with roles (admin/partner/viewer) |
+| `partner_invites` | Pending email invitations |
+| `sessions` | Auth sessions for magic-link login |
+| `settings` | App configuration (branding, consensus, behaviour) |
 
 Reset everything:
 ```bash

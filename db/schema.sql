@@ -71,6 +71,45 @@ CREATE TABLE bizplan.section_history (
     changed_at      TIMESTAMPTZ DEFAULT now()
 );
 
+-- Partners & auth
+CREATE TABLE bizplan.partners (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email           TEXT NOT NULL UNIQUE,
+    name            TEXT NOT NULL DEFAULT '',
+    role            TEXT NOT NULL DEFAULT 'partner'
+                    CHECK (role IN ('admin', 'partner', 'viewer')),
+    invited_by      UUID REFERENCES bizplan.partners(id) ON DELETE SET NULL,
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    accepted_at     TIMESTAMPTZ,
+    active          BOOLEAN NOT NULL DEFAULT true
+);
+
+CREATE TABLE bizplan.partner_invites (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email           TEXT NOT NULL,
+    token           VARCHAR(128) NOT NULL UNIQUE,
+    invited_by      UUID NOT NULL REFERENCES bizplan.partners(id),
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    expires_at      TIMESTAMPTZ NOT NULL,
+    accepted_at     TIMESTAMPTZ
+);
+
+CREATE TABLE bizplan.sessions (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    token           VARCHAR(128) NOT NULL UNIQUE,
+    partner_id      UUID NOT NULL REFERENCES bizplan.partners(id) ON DELETE CASCADE,
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    expires_at      TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE bizplan.settings (
+    key             VARCHAR(100) PRIMARY KEY,
+    value           TEXT NOT NULL,
+    updated_at      TIMESTAMPTZ DEFAULT now(),
+    updated_by      UUID REFERENCES bizplan.partners(id)
+);
+
+-- Indexes
 CREATE INDEX idx_thread_entries_section ON bizplan.thread_entries(section_id);
 CREATE INDEX idx_votes_section ON bizplan.votes(section_id);
 CREATE INDEX idx_section_links_source ON bizplan.section_links(source_id);
@@ -79,3 +118,7 @@ CREATE INDEX idx_notifications_recipient ON bizplan.notifications(recipient_emai
 CREATE INDEX idx_section_history_section ON bizplan.section_history(section_id);
 CREATE INDEX idx_sections_parent ON bizplan.sections(parent_id);
 CREATE INDEX idx_sections_position ON bizplan.sections(parent_id, position);
+CREATE INDEX idx_partners_active ON bizplan.partners(active);
+CREATE INDEX idx_partner_invites_token ON bizplan.partner_invites(token);
+CREATE INDEX idx_sessions_token ON bizplan.sessions(token);
+CREATE INDEX idx_sessions_partner ON bizplan.sessions(partner_id);

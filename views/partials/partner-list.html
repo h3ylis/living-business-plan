@@ -1,0 +1,68 @@
+<table class="activity-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each partners}}
+    <tr style="{{#if this.inactive}}opacity: 0.5;{{/if}}">
+      <td>
+        <strong>{{this.name}}</strong>
+        {{#if this.isSelf}} <span style="font-size:0.75rem; color:#1565c0;">(you)</span>{{/if}}
+      </td>
+      <td style="font-size: 0.85rem; color: #666;">{{this.email}}</td>
+      <td>
+        <select hx-post="/admin/partners/{{this.id}}/role" hx-swap="none" name="role"
+                style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.8rem;"
+                {{#if this.isSelf}}disabled{{/if}}>
+          <option value="admin" {{#if this.isAdmin}}selected{{/if}}>Admin</option>
+          <option value="partner" {{#if this.isPartner}}selected{{/if}}>Partner</option>
+          <option value="viewer" {{#if this.isViewer}}selected{{/if}}>Viewer</option>
+        </select>
+      </td>
+      <td>
+        {{#if this.active}}
+        <span class="badge badge-approved">active</span>
+        {{else}}
+        <span class="badge badge-rejected">inactive</span>
+        {{/if}}
+      </td>
+      <td>
+        {{#if this.isSelf}}
+        <span style="font-size:0.8rem; color:#aaa;">—</span>
+        {{else}}
+          {{#if this.active}}
+          <button hx-post="/admin/partners/{{this.id}}/deactivate" hx-swap="none"
+                  style="padding: 4px 12px; font-size: 0.8rem; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer; color: #c62828;">
+            Deactivate
+          </button>
+          {{else}}
+          <button hx-post="/admin/partners/{{this.id}}/activate" hx-swap="none"
+                  style="padding: 4px 12px; font-size: 0.8rem; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer; color: #2e7d32;">
+            Activate
+          </button>
+          {{/if}}
+        {{/if}}
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+{{#if pendingInvites.length}}
+<div style="margin-top: 16px;">
+  <h4 style="font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 8px;">Pending Invites</h4>
+  {{#each pendingInvites}}
+  <div style="display: flex; align-items: center; gap: 12px; padding: 6px 0; font-size: 0.85rem; color: #666;">
+    <span>{{this.email}}</span>
+    <span class="badge badge-under_review">pending</span>
+    <span style="font-size: 0.75rem; color: #aaa;">expires {{this.timeAgo}}</span>
+  </div>
+  {{/each}}
+</div>
+{{/if}}

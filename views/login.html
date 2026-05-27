@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{appName}} — Sign In</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #e8e8e8; }
+    .login-card {
+      background: #fff; border-radius: 12px; padding: 48px 40px; width: 100%; max-width: 400px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12); text-align: center;
+    }
+    .login-card h1 { font-size: 1.6rem; margin-bottom: 8px; color: #1a1a2e; }
+    .login-card p { color: #666; font-size: 0.9rem; margin-bottom: 24px; }
+    .login-card input[type="email"] {
+      width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 1rem; margin-bottom: 16px; font-family: inherit;
+    }
+    .login-card input:focus { outline: none; border-color: #1565c0; }
+    .login-card button {
+      width: 100%; padding: 12px; background: #1565c0; color: #fff; border: none;
+      border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .login-card button:hover { background: #0d47a1; }
+    .flash { padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; }
+    .flash-msg { background: #e3f2fd; color: #1565c0; }
+    .flash-error { background: #ffebee; color: #c62828; }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <h1>{{{appName}}}</h1>
+    <p>Enter your email to receive a sign-in link.</p>
+    {{#if flash}}<div class="flash flash-msg">{{flash}}</div>{{/if}}
+    {{#if error}}<div class="flash flash-error">{{error}}</div>{{/if}}
+    <form method="POST" action="/login">
+      <input type="email" name="email" placeholder="you@example.com" required autofocus>
+      <button type="submit">Send sign-in link</button>
+    </form>
+  </div>
+</body>
+</html>

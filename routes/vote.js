@@ -6,6 +6,9 @@ const { notifyOthers } = require('../lib/notify');
 const router = Router();
 
 router.post('/:sectionId', async (req, res) => {
+  // Viewers cannot vote
+  if (req.user.role === 'viewer') return res.status(403).send('Viewers cannot vote');
+
   const { vote, reason } = req.body;
   if (!reason || !reason.trim()) return res.status(400).send('Reason is mandatory');
   if (!['accept', 'reject'].includes(vote)) return res.status(400).send('Invalid vote');
