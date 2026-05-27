@@ -4,6 +4,7 @@ const { marked } = require('marked');
 const { notifyOthers } = require('../lib/notify');
 const settings = require('../lib/settings');
 const status = require('../lib/status');
+const audit = require('../lib/audit');
 
 const router = Router();
 
@@ -65,6 +66,12 @@ router.post('/section', async (req, res) => {
      VALUES ($1, $2, $3, $4) RETURNING *`,
     [title, body_md || '', parent_id || null, maxPos[0].next]
   );
+  audit.log({
+    user: req.user, action: 'add_section', category: 'section',
+    targetType: 'section', targetId: rows[0].id,
+    detail: `Added section "${title}"`,
+    metadata: { title, position: maxPos[0].next }
+  });
   res.redirect('/plan');
 });
 
@@ -140,6 +147,13 @@ router.put('/section/:id', async (req, res) => {
   );
   section.status = refreshed[0]?.status || section.status;
   section.locked = false; // Just edited, can't be locked
+
+  audit.log({
+    user: req.user, action: 'edit_section', category: 'section',
+    targetType: 'section', targetId: req.params.id,
+    detail: `Edited "${title}" (v${section.version})`,
+    metadata: { title, version: section.version, votesReset: s.vote_reset_on_edit === 'true' && votes.length === 0 }
+  });
 
   notifyOthers({
     excludeEmail: req.user.email,

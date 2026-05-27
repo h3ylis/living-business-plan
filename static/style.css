@@ -354,6 +354,15 @@ body { font-family: 'Segoe UI', -apple-system, sans-serif; background: #e8e8e8; 
 .activity-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; }
 .activity-table a { color: var(--accent, #1565c0); text-decoration: none; }
 
+/* Audit log badges */
+.badge-auth { background: #e3f2fd; color: #1565c0; }
+.badge-partner { background: #f3e5f5; color: #6a1b9a; }
+.badge-section { background: #fff3e0; color: #e65100; }
+.badge-vote { background: #e8f5e9; color: #2e7d32; }
+.badge-comment { background: #fffde7; color: #f57f17; }
+.badge-settings { background: #eceff1; color: #455a64; }
+.badge-admin { background: #fce4ec; color: #c62828; }
+
 /* ─── Mobile ─── */
 @media (max-width: 768px) {
   .sidebar { width: 240px; }

@@ -114,5 +114,40 @@
     </form>
   </div>
 
+  <!-- ─── Audit Log ─── -->
+  <div class="dash-card" style="margin-bottom: 24px;">
+    <h3>Audit Log</h3>
+    <p style="font-size: 0.85rem; color: #666; margin-bottom: 12px;">Who did what, when.</p>
+
+    {{#if auditEntries.length}}
+    <table class="activity-table">
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Who</th>
+          <th>Action</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each auditEntries}}
+        <tr>
+          <td style="white-space: nowrap; font-size: 0.8rem; color: #888;">{{this.timeAgo}}</td>
+          <td style="font-size: 0.85rem;">
+            <strong>{{this.actor_name}}</strong>
+          </td>
+          <td>
+            <span class="badge badge-{{this.category}}">{{this.action}}</span>
+          </td>
+          <td style="font-size: 0.85rem; color: #555;">{{this.detail}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    {{else}}
+    <p style="color: #999; font-style: italic; padding: 16px 0; text-align: center;">No activity recorded yet.</p>
+    {{/if}}
+  </div>
+
 </div>
 </div>

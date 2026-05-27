@@ -3,6 +3,7 @@ const db = require('../lib/db');
 const settings = require('../lib/settings');
 const { generateToken } = require('../lib/auth');
 const { notify } = require('../lib/notify');
+const audit = require('../lib/audit');
 
 const router = Router();
 
@@ -36,9 +37,14 @@ router.get('/', async (req, res) => {
     consensusDisplay = Math.ceil(eligible / 2) + 1 + ' of ' + eligible;
   }
 
+  const { rows: auditEntries } = await db.query(
+    'SELECT * FROM bizplan.audit_log ORDER BY created_at DESC LIMIT 50'
+  );
+
   res.render('admin', {
     partners, pendingInvites, settings: allSettings,
     consensusDisplay, eligibleCount: eligible,
+    auditEntries,
     user: req.user, activeTab: 'admin', pageTitle: 'Admin'
   });
 });
@@ -83,6 +89,12 @@ router.post('/partners/invite', async (req, res) => {
     type: 'partner_invite'
   }).catch(() => {});
 
+  audit.log({
+    user: req.user, action: 'invite_partner', category: 'partner',
+    targetType: 'partner', targetId: trimmedEmail,
+    detail: `Invited ${trimmedEmail}`
+  });
+
   res.set('HX-Trigger', 'partnersUpdated').send('');
 });
 
@@ -104,6 +116,13 @@ router.post('/partners/add', async (req, res) => {
     [trimmedEmail, (name || '').trim() || trimmedEmail.split('@')[0], partnerRole, req.user.id]
   );
 
+  audit.log({
+    user: req.user, action: 'add_partner', category: 'partner',
+    targetType: 'partner', targetId: trimmedEmail,
+    detail: `Added ${(name || '').trim() || trimmedEmail} as ${partnerRole}`,
+    metadata: { email: trimmedEmail, name: (name || '').trim(), role: partnerRole }
+  });
+
   res.set('HX-Trigger', 'partnersUpdated').send('');
 });
 
@@ -123,10 +142,17 @@ router.post('/partners/:id/role', async (req, res) => {
     }
   }
 
+  const { rows: before } = await db.query('SELECT email, name, role AS old_role FROM bizplan.partners WHERE id = $1', [req.params.id]);
   await db.query(
     'UPDATE bizplan.partners SET role = $1 WHERE id = $2',
     [role, req.params.id]
   );
+  audit.log({
+    user: req.user, action: 'change_role', category: 'partner',
+    targetType: 'partner', targetId: req.params.id,
+    detail: `Changed ${before[0]?.name || before[0]?.email} from ${before[0]?.old_role} to ${role}`,
+    metadata: { email: before[0]?.email, oldRole: before[0]?.old_role, newRole: role }
+  });
   res.set('HX-Trigger', 'partnersUpdated').send('');
 });
 
@@ -138,7 +164,7 @@ router.post('/partners/:id/deactivate', async (req, res) => {
   }
   // Prevent deactivating the last admin
   const { rows: target } = await db.query(
-    'SELECT role FROM bizplan.partners WHERE id = $1', [req.params.id]
+    'SELECT email, name, role FROM bizplan.partners WHERE id = $1', [req.params.id]
   );
   if (target[0]?.role === 'admin') {
     const { rows: admins } = await db.query(
@@ -149,12 +175,25 @@ router.post('/partners/:id/deactivate', async (req, res) => {
   }
 
   await db.query('UPDATE bizplan.partners SET active = false WHERE id = $1', [req.params.id]);
+  audit.log({
+    user: req.user, action: 'deactivate_partner', category: 'partner',
+    targetType: 'partner', targetId: req.params.id,
+    detail: `Deactivated ${target[0]?.name || target[0]?.email}`,
+    metadata: { email: target[0]?.email }
+  });
   res.set('HX-Trigger', 'partnersUpdated').send('');
 });
 
 // ─── Activate partner ───
 router.post('/partners/:id/activate', async (req, res) => {
+  const { rows: target } = await db.query('SELECT email, name FROM bizplan.partners WHERE id = $1', [req.params.id]);
   await db.query('UPDATE bizplan.partners SET active = true WHERE id = $1', [req.params.id]);
+  audit.log({
+    user: req.user, action: 'activate_partner', category: 'partner',
+    targetType: 'partner', targetId: req.params.id,
+    detail: `Reactivated ${target[0]?.name || target[0]?.email}`,
+    metadata: { email: target[0]?.email }
+  });
   res.set('HX-Trigger', 'partnersUpdated').send('');
 });
 
@@ -162,7 +201,14 @@ router.post('/partners/:id/activate', async (req, res) => {
 router.post('/partners/:id/name', async (req, res) => {
   const { name } = req.body;
   if (!name || !name.trim()) return res.status(400).send('Name is required');
+  const { rows: before } = await db.query('SELECT name AS old_name, email FROM bizplan.partners WHERE id = $1', [req.params.id]);
   await db.query('UPDATE bizplan.partners SET name = $1 WHERE id = $2', [name.trim(), req.params.id]);
+  audit.log({
+    user: req.user, action: 'rename_partner', category: 'partner',
+    targetType: 'partner', targetId: req.params.id,
+    detail: `Renamed ${before[0]?.old_name} to ${name.trim()}`,
+    metadata: { email: before[0]?.email, oldName: before[0]?.old_name, newName: name.trim() }
+  });
   res.set('HX-Trigger', 'partnersUpdated').send('');
 });
 
@@ -188,7 +234,23 @@ router.post('/settings', async (req, res) => {
     }
   }
 
+  // Capture what changed for audit
+  const oldSettings = await settings.getAll();
+  const changes = {};
+  for (const [k, v] of Object.entries(updates)) {
+    if (oldSettings[k] !== v) changes[k] = { from: oldSettings[k], to: v };
+  }
+
   await settings.setMany(updates, req.user.id);
+
+  if (Object.keys(changes).length > 0) {
+    audit.log({
+      user: req.user, action: 'update_settings', category: 'settings',
+      detail: `Updated: ${Object.keys(changes).join(', ')}`,
+      metadata: changes
+    });
+  }
+
   res.set('HX-Trigger', 'settingsUpdated').redirect('/admin');
 });
 

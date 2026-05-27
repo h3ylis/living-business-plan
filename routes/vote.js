@@ -2,6 +2,7 @@ const { Router } = require('express');
 const db = require('../lib/db');
 const status = require('../lib/status');
 const { notifyOthers } = require('../lib/notify');
+const audit = require('../lib/audit');
 
 const router = Router();
 
@@ -43,6 +44,13 @@ router.post('/:sectionId', async (req, res) => {
   const { rows: sec } = await db.query('SELECT title FROM bizplan.sections WHERE id = $1', [req.params.sectionId]);
   const sectionTitle = sec[0]?.title || 'Unknown';
   const voteAction = vote === 'accept' ? 'accepted' : 'rejected';
+
+  audit.log({
+    user: req.user, action: `vote_${vote}`, category: 'vote',
+    targetType: 'section', targetId: req.params.sectionId,
+    detail: `${voteAction} "${sectionTitle}" — status now ${newStatus}`,
+    metadata: { vote, reason, sectionTitle, newStatus, wasUpdate: existing.length > 0 }
+  });
   notifyOthers({
     excludeEmail: req.user.email,
     subject: `Exec: ${req.user.name} ${voteAction} "${sectionTitle}"`,

@@ -3,6 +3,7 @@ const db = require('../lib/db');
 const { generateToken, setSessionCookie, clearSessionCookie, AUTH_MODE } = require('../lib/auth');
 const { notify } = require('../lib/notify');
 const settings = require('../lib/settings');
+const audit = require('../lib/audit');
 
 const router = Router();
 
@@ -106,6 +107,13 @@ router.get('/auth/verify/:token', async (req, res) => {
   }
 
   setSessionCookie(res, token);
+
+  audit.log({
+    user: { email: rows[0].email, name: rows[0].name },
+    action: 'login', category: 'auth',
+    detail: `Signed in via magic link`
+  });
+
   res.redirect('/');
 });
 

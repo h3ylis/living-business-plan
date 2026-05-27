@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const db = require('../lib/db');
 const { marked } = require('marked');
+const audit = require('../lib/audit');
 
 const router = Router();
 
@@ -70,6 +71,13 @@ router.post('/:sectionId/comment', async (req, res) => {
      VALUES ($1, $2, $3, 'comment', $4)`,
     [req.params.sectionId, req.user.email, req.user.name, body_md]
   );
+
+  audit.log({
+    user: req.user, action: 'add_comment', category: 'comment',
+    targetType: 'section', targetId: req.params.sectionId,
+    detail: `Commented on section`,
+    metadata: { preview: body_md.substring(0, 100) }
+  });
 
   res.set('HX-Trigger', 'threadUpdated').send('');
 });

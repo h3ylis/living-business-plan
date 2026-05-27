@@ -192,6 +192,7 @@ app.use(async (req, res, next) => {
     if (data.recentActivity) data.recentActivity = addTimeAgo(data.recentActivity);
     if (data.history) data.history = addTimeAgo(data.history);
     if (data.pendingInvites) data.pendingInvites = addTimeAgo(data.pendingInvites);
+    if (data.auditEntries) data.auditEntries = addTimeAgo(data.auditEntries);
 
     // Add helper flags to partners for templates
     if (data.partners) {

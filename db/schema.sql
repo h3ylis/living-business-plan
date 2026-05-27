@@ -109,6 +109,20 @@ CREATE TABLE bizplan.settings (
     updated_by      UUID REFERENCES bizplan.partners(id)
 );
 
+-- Audit log
+CREATE TABLE bizplan.audit_log (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    actor_email     TEXT NOT NULL,
+    actor_name      TEXT NOT NULL DEFAULT '',
+    action          TEXT NOT NULL,
+    category        TEXT NOT NULL DEFAULT 'admin',
+    target_type     TEXT,
+    target_id       TEXT,
+    detail          TEXT,
+    metadata        JSONB,
+    created_at      TIMESTAMPTZ DEFAULT now()
+);
+
 -- Indexes
 CREATE INDEX idx_thread_entries_section ON bizplan.thread_entries(section_id);
 CREATE INDEX idx_votes_section ON bizplan.votes(section_id);
@@ -122,3 +136,7 @@ CREATE INDEX idx_partners_active ON bizplan.partners(active);
 CREATE INDEX idx_partner_invites_token ON bizplan.partner_invites(token);
 CREATE INDEX idx_sessions_token ON bizplan.sessions(token);
 CREATE INDEX idx_sessions_partner ON bizplan.sessions(partner_id);
+CREATE INDEX idx_audit_log_created ON bizplan.audit_log(created_at DESC);
+CREATE INDEX idx_audit_log_actor ON bizplan.audit_log(actor_email);
+CREATE INDEX idx_audit_log_category ON bizplan.audit_log(category);
+CREATE INDEX idx_audit_log_target ON bizplan.audit_log(target_type, target_id);
